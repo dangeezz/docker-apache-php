@@ -25,7 +25,7 @@ services:
   app_1:
     build:
       context: "./"
-      dockerfile: "./docker/app_1/fpm.Dockerfile"
+      dockerfile: "./docker/app_1/php-fpm.Dockerfile"
     container_name: app_1
     # ports:
     #   - "9001:9000"
@@ -38,7 +38,7 @@ services:
   app_2:
     build:
       context: "./"
-      dockerfile: "./docker/app_2/fpm.Dockerfile"
+      dockerfile: "./docker/app_2/php-fpm.Dockerfile"
     container_name: app_2
     volumes:
       - ./app_2:/var/www/html/
@@ -48,15 +48,11 @@ services:
       - apache
       - mysql
 
-  # Util containers
-  # composer:
-  #   build:
-  #     context: "./"
-  #     dockerfile: "./docker/composer.Dockerfile"
-  #   working_dir: "/var/www/html"
-  #   volumes:
-  #     - ./app_2:/var/www/html
 
+  # Utility containers
+
+  # composer to install php packages
+  # change volume to point to the app you want to install packages
   composer:
     image: composer:latest
     working_dir: "/var/www/html/"
