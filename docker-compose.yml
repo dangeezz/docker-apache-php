@@ -1,0 +1,72 @@
+version: "3.8"
+services:
+  apache:
+    image: httpd:2.4
+    container_name: apache_server
+    ports:
+      - "8080:80"  # Expose Apache on port 80
+    volumes:
+      - ./docker/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf  # Custom Apache config
+      - ./docker/apache/vhost.conf:/usr/local/apache2/conf/extra/vhost.conf  # Custom Apache config
+      - ./app_1:/usr/local/apache2/htdocs/app_1  # Mount your application code
+      - ./app_2:/usr/local/apache2/htdocs/app_2  # Mount your application code
+
+  mysql:
+    image: mysql:5.7
+    restart: always
+    container_name: mysql
+    # ports:
+    #   - "3309:3306"
+    env_file:
+      - ./docker/envs/mysql.env
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  app_1:
+    build:
+      context: "./"
+      dockerfile: "./docker/app_1/fpm.Dockerfile"
+    container_name: app_1
+    # ports:
+    #   - "9001:9000"
+    volumes:
+      - ./app_1:/var/www/html/
+    depends_on:
+      - apache
+      - mysql
+
+  app_2:
+    build:
+      context: "./"
+      dockerfile: "./docker/app_2/fpm.Dockerfile"
+    container_name: app_2
+    volumes:
+      - ./app_2:/var/www/html/
+    # ports:
+    #   - "9002:9000"
+    depends_on:
+      - apache
+      - mysql
+
+  # Util containers
+  # composer:
+  #   build:
+  #     context: "./"
+  #     dockerfile: "./docker/composer.Dockerfile"
+  #   working_dir: "/var/www/html"
+  #   volumes:
+  #     - ./app_2:/var/www/html
+
+  composer:
+    image: composer:latest
+    working_dir: "/var/www/html/"
+    volumes:
+      - ./app_1:/var/www/html
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge
